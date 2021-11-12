@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import ge.nlatsabidze.roomexample.App
 import ge.nlatsabidze.roomexample.BaseFragment
 import ge.nlatsabidze.roomexample.databinding.FragmentHomeBinding
 import ge.nlatsabidze.roomexample.recyclerViewAdapter.UserInfoRecyclerAdapter
@@ -20,8 +21,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
 
     override fun start() {
 
-        userViewModel.setResult()
-        initRecycler()
+        val result = checkForInternet()
+        if (result) {
+            userViewModel.setResult()
+            initRecycler()
+        } else {
+            userViewModel.readData.observe(viewLifecycleOwner, {
+                userItemAdapter.userInformation = it
+            })
+        }
     }
 
     private fun initRecycler() {
@@ -39,26 +47,22 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
         })
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
-    fun isOnline(context: Context): Boolean {
-        val connectivityManager =
-                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (connectivityManager != null) {
-            val capabilities =
-                    connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-            if (capabilities != null) {
-                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
-                    return true
-                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
-                    return true
-                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
-                    return true
-                }
+    private fun checkForInternet(): Boolean {
+
+        val connectivityManager = App.context!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val network = connectivityManager.activeNetwork ?: return false
+            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+            return when {
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                else -> false
             }
+        } else {
+            val networkInfo =
+                connectivityManager.activeNetworkInfo ?: return false
+            return networkInfo.isConnected
         }
-        return false
     }
 }
