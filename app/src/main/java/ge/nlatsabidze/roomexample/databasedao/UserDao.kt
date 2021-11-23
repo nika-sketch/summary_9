@@ -14,6 +14,4 @@ interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(vararg item: InformationItem)
 
-    @Query("SELECT * FROM info_table")
-    fun getAll(): LiveData<List<InformationItem>>
 }

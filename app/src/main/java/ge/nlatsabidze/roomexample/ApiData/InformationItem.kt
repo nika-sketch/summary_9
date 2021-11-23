@@ -17,5 +17,5 @@ data class InformationItem(
         @Json(name = "title")
         val title: String?
 ) {
-    @PrimaryKey var id: Int = 0
+        @PrimaryKey(autoGenerate = true) var id: Int = 0
 }

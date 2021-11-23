@@ -9,14 +9,4 @@ import ge.nlatsabidze.roomexample.databasedao.UserDao
 abstract class UserDataBase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
-
-    companion object {
-        val db by lazy {
-            Room.databaseBuilder(
-                    App.context!!,
-                    UserDataBase::class.java,
-                    "Items"
-            ).build()
-        }
-    }
 }
